@@ -3,7 +3,8 @@
 class AdminController extends Controller {
   <<__Override>>
   protected function getTitle(): string {
-    return tr('Facebook CTF').' | '.tr('Admin');
+    $custom_org = \HH\Asio\join(Configuration::gen('custom_org'));
+    return tr($custom_org->getValue()). ' '. tr('CTF'). ' | '. tr('Admin');
   }
 
   <<__Override>>
@@ -304,15 +305,20 @@ class AdminController extends Controller {
       'ldap_domain_suffix' => Configuration::gen('ldap_domain_suffix'),
       'scoring' => Configuration::gen('scoring'),
       'gameboard' => Configuration::gen('gameboard'),
+      'auto_announce' => Configuration::gen('auto_announce'),
       'timer' => Configuration::gen('timer'),
       'progressive_cycle' => Configuration::gen('progressive_cycle'),
       'default_bonus' => Configuration::gen('default_bonus'),
       'default_bonusdec' => Configuration::gen('default_bonusdec'),
       'bases_cycle' => Configuration::gen('bases_cycle'),
+      'autorun_cycle' => Configuration::gen('autorun_cycle'),
       'start_ts' => Configuration::gen('start_ts'),
       'end_ts' => Configuration::gen('end_ts'),
+      'livesync' => Configuration::gen('livesync'),
+      'livesync_auth_key' => Configuration::gen('livesync_auth_key'),
       'custom_logo' => Configuration::gen('custom_logo'),
-      'custom_text' => Configuration::gen('custom_text'),
+      'custom_org' => Configuration::gen('custom_org'),
+      'custom_byline' => Configuration::gen('custom_byline'),
       'custom_logo_image' => Configuration::gen('custom_logo_image'),
     };
 
@@ -331,15 +337,20 @@ class AdminController extends Controller {
     $ldap_domain_suffix = $results['ldap_domain_suffix'];
     $scoring = $results['scoring'];
     $gameboard = $results['gameboard'];
+    $auto_announce = $results['auto_announce'];
     $timer = $results['timer'];
     $progressive_cycle = $results['progressive_cycle'];
     $default_bonus = $results['default_bonus'];
     $default_bonusdec = $results['default_bonusdec'];
     $bases_cycle = $results['bases_cycle'];
+    $autorun_cycle = $results['autorun_cycle'];
     $start_ts = $results['start_ts'];
     $end_ts = $results['end_ts'];
+    $livesync = $results['livesync'];
+    $livesync_auth_key = $results['livesync_auth_key'];
     $custom_logo = $results['custom_logo'];
-    $custom_text = $results['custom_text'];
+    $custom_org = $results['custom_org'];
+    $custom_byline = $results['custom_byline'];
     $custom_logo_image = $results['custom_logo_image'];
 
     $registration_on = $registration->getValue() === '1';
@@ -358,8 +369,12 @@ class AdminController extends Controller {
     $scoring_off = $scoring->getValue() === '0';
     $gameboard_on = $gameboard->getValue() === '1';
     $gameboard_off = $gameboard->getValue() === '0';
+    $auto_announce_on = $auto_announce->getValue() === '1';
+    $auto_announce_off = $auto_announce->getValue() === '0';
     $timer_on = $timer->getValue() === '1';
     $timer_off = $timer->getValue() === '0';
+    $livesync_on = $livesync->getValue() === '1';
+    $livesync_off = $livesync->getValue() === '0';
     $custom_logo_on = $custom_logo->getValue() === '1';
     $custom_logo_off = $custom_logo->getValue() === '0';
 
@@ -783,6 +798,37 @@ class AdminController extends Controller {
                     </div>
                   </div>
                   <div class="col col-pad col-4-4">
+                    <div class="form-el el--block-label">
+                      <label>{tr('Autorun Cycle (s)')}</label>
+                      <input
+                        type="number"
+                        value={$autorun_cycle->getValue()}
+                        name="fb--conf--autorun_cycle"
+                      />
+                    </div>
+                    <div class="form-el el--block-label">
+                      <label>{tr('Auto Announcements')}</label>
+                      <div class="admin-section-toggle radio-inline">
+                        <input
+                          type="radio"
+                          name="fb--conf--auto_announce"
+                          id="fb--conf--auto_announce--on"
+                          checked={$auto_announce_on}
+                        />
+                        <label for="fb--conf--auto_announce--on">
+                          {tr('On')}
+                        </label>
+                        <input
+                          type="radio"
+                          name="fb--conf--auto_announce"
+                          id="fb--conf--auto_announce--off"
+                          checked={$auto_announce_off}
+                        />
+                        <label for="fb--conf--auto_announce--off">
+                          {tr('Off')}
+                        </label>
+                      </div>
+                    </div>
                     <div class="form-el el--block-label"></div>
                   </div>
                 </div>
@@ -948,6 +994,43 @@ class AdminController extends Controller {
               </section>
               <section class="admin-box">
                 <header class="admin-box-header">
+                  <h3>{tr('LiveSync')}</h3>
+                  <div class="admin-section-toggle radio-inline">
+                    <input
+                      type="radio"
+                      name="fb--conf--livesync"
+                      id="fb--conf--livesync--on"
+                      checked={$livesync_on}
+                    />
+                    <label for="fb--conf--livesync--on">
+                      {tr('On')}
+                    </label>
+                    <input
+                      type="radio"
+                      name="fb--conf--livesync"
+                      id="fb--conf--livesync--off"
+                      checked={$livesync_off}
+                    />
+                    <label for="fb--conf--livesync--off">
+                      {tr('Off')}
+                    </label>
+                  </div>
+                </header>
+                <div class="fb-column-container">
+                  <div class="col col-pad col-1-4">
+                    <div class="form-el el--block-label el--full-text">
+                      <label>{tr('Optional LiveSync Auth Key')}</label>
+                      <input
+                        type="text"
+                        value={$livesync_auth_key->getValue()}
+                        name="fb--conf--livesync_auth_key"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section class="admin-box">
+                <header class="admin-box-header">
                   <h3>{tr('Internationalization')}</h3>
                 </header>
                 <div class="fb-column-container">
@@ -994,11 +1077,21 @@ class AdminController extends Controller {
                   </div>
                   <div class="col col-pad col-1-3">
                     <div class="form-el el--block-label el--full-text">
-                      <label for="">{tr('Custom Text')}</label>
+                      <label for="">{tr('Custom Organization')}</label>
                       <input
                         type="text"
-                        name="fb--conf--custom_text"
-                        value={$custom_text->getValue()}
+                        name="fb--conf--custom_org"
+                        value={$custom_org->getValue()}
+                      />
+                    </div>
+                  </div>
+                  <div class="col col-pad col-1-3">
+                    <div class="form-el el--block-label el--full-text">
+                      <label for="">{tr('Custom Byline')}</label>
+                      <input
+                        type="text"
+                        name="fb--conf--custom_byline"
+                        value={$custom_byline->getValue()}
                       />
                     </div>
                   </div>
@@ -1059,7 +1152,7 @@ class AdminController extends Controller {
     return
       <div>
         <header class="admin-page-header">
-          <h3>{tr('Game Controls')}</h3>
+          <h3>{tr('Announcement Controls')}</h3>
           <span class="admin-section--status">
             {tr('status_')}<span class="highlighted">{tr('OK')}</span>
           </span>
@@ -1117,10 +1210,16 @@ class AdminController extends Controller {
                 <div class="form-el el--block-label el--full-text">
                   <div class="admin-buttons">
                     <button
-                      class="fb-cta cta--yellow"
-                      data-action="backup-db">
-                      {tr('Back Up Database')}
+                      class="fb-cta cta--red"
+                      data-action="import-game">
+                      {tr('Import Full Game')}
                     </button>
+                    <input
+                      class="completely-hidden"
+                      id="import-game_file"
+                      type="file"
+                      name="game_file"
+                    />
                   </div>
                 </div>
               </div>
@@ -1132,23 +1231,6 @@ class AdminController extends Controller {
                       data-action="export-game">
                       {tr('Export Full Game')}
                     </button>
-                  </div>
-                </div>
-              </div>
-              <div class="col col-pad col-1-3">
-                <div class="form-el el--block-label el--full-text">
-                  <div class="admin-buttons">
-                    <button
-                      class="fb-cta cta--yellow"
-                      data-action="import-game">
-                      {tr('Import Full Game')}
-                    </button>
-                    <input
-                      class="completely-hidden"
-                      id="import-game_file"
-                      type="file"
-                      name="game_file"
-                    />
                   </div>
                 </div>
               </div>
@@ -1175,6 +1257,32 @@ class AdminController extends Controller {
                   <div class="admin-buttons">
                     <button class="fb-cta cta--red js-reset-database">
                       {tr('Reset Database')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="col col-pad col-1-3">
+                <div class="form-el el--block-label el--full-text">
+                  <div class="admin-buttons">
+                    <button class="fb-cta cta--red js-restore-database">
+                      {tr('Restore Database')}
+                    </button>
+                    <input
+                      class="completely-hidden"
+                      id="restore-database_file"
+                      type="file"
+                      name="database_file"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="col col-pad col-1-3">
+                <div class="form-el el--block-label el--full-text">
+                  <div class="admin-buttons">
+                    <button
+                      class="fb-cta cta--yellow"
+                      data-action="backup-db">
+                      {tr('Backup Database')}
                     </button>
                   </div>
                 </div>
@@ -1277,6 +1385,41 @@ class AdminController extends Controller {
                   </div>
                 </div>
               </div>
+              <div class="col col-pad col-1-4">
+                <div class="form-el el--block-label el--full-text">
+                  <div class="admin-buttons">
+                    <button
+                      class="fb-cta cta--red"
+                      data-action="import-attachments">
+                      {tr('Import Attachments')}
+                    </button>
+                    <input
+                      class="completely-hidden"
+                      id="import-attachments_file"
+                      type="file"
+                      name="attachments_file"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="col col-pad col-1-4">
+                <div class="form-el el--block-label el--full-text">
+                  <div class="admin-buttons">
+                    <button
+                      class="fb-cta cta--yellow"
+                      data-action="export-attachments">
+                      {tr('Export Attachments')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="admin-box">
+            <header class="admin-box-header">
+              <h3>{tr('Categories')}</h3>
+            </header>
+            <div class="fb-column-container">
               <div class="col col-pad col-1-4">
                 <div class="form-el el--block-label el--full-text">
                   <div class="admin-buttons">
@@ -1450,14 +1593,26 @@ class AdminController extends Controller {
       $quiz_status_off_id =
         'fb--levels--level-'.strval($quiz->getId()).'-status--off';
 
-      $quiz_id = 'quiz_id'.strval($quiz->getId());
+      $quiz_id = strval($quiz->getId());
+      $quiz_id_txt = 'quiz_id'.strval($quiz->getId());
 
       $countries_select =
         await $this->genGenerateCountriesSelect($quiz->getEntityId());
 
+      $delete_button =
+        <div style="display: inline">
+          <input type="hidden" name="level_id" value={$quiz_id} />
+          <a
+            href="#"
+            class="fb-cta cta--red js-delete-level"
+            style="margin-right: 20px">
+            {tr('Delete')}
+          </a>
+        </div>;
+
       $adminsections->appendChild(
         <section class="admin-box validate-form section-locked">
-          <form class="level_form quiz_form" name={$quiz_id}>
+          <form class="level_form quiz_form" name={$quiz_id_txt}>
             <input type="hidden" name="level_type" value="quiz" />
             <input
               type="hidden"
@@ -1586,9 +1741,7 @@ class AdminController extends Controller {
                 <a href="#" class="admin--edit" data-action="edit">
                   {tr('EDIT')}
                 </a>
-                <button class="fb-cta cta--red" data-action="delete">
-                  {tr('Delete')}
-                </button>
+                {$delete_button}
                 <button class="fb-cta cta--yellow" data-action="save">
                   {tr('Save')}
                 </button>
@@ -1780,7 +1933,19 @@ class AdminController extends Controller {
       $flag_status_off_id =
         'fb--levels--level-'.strval($flag->getId()).'-status--off';
 
-      $flag_id = 'flag_id'.strval($flag->getId());
+      $flag_id_txt = 'flag_id'.strval($flag->getId());
+      $flag_id = strval($flag->getId());
+
+      $delete_button =
+        <div style="display: inline">
+          <input type="hidden" name="level_id" value={$flag_id} />
+          <a
+            href="#"
+            class="fb-cta cta--red js-delete-level"
+            style="margin-right: 20px">
+            {tr('Delete')}
+          </a>
+        </div>;
 
       $attachments_div =
         <div class="attachments">
@@ -1965,7 +2130,7 @@ class AdminController extends Controller {
 
       $adminsections->appendChild(
         <section class="validate-form admin-box section-locked">
-          <form class="level_form flag_form" name={$flag_id}>
+          <form class="level_form flag_form" name={$flag_id_txt}>
             <input type="hidden" name="level_type" value="flag" />
             <input
               type="hidden"
@@ -2105,9 +2270,7 @@ class AdminController extends Controller {
               <a href="#" class="admin--edit" data-action="edit">
                 {tr('EDIT')}
               </a>
-              <button class="fb-cta cta--red" data-action="delete">
-                {tr('Delete')}
-              </button>
+              {$delete_button}
               <button class="fb-cta cta--yellow" data-action="save">
                 {tr('Save')}
               </button>
@@ -2304,7 +2467,19 @@ class AdminController extends Controller {
       $base_status_off_id =
         'fb--levels--level-'.strval($base->getId()).'-status--off';
 
-      $base_id = 'base_id'.strval($base->getId());
+      $base_id = strval($base->getId());
+      $base_id_txt = 'base_id'.strval($base->getId());
+
+      $delete_button =
+        <div style="display: inline">
+          <input type="hidden" name="level_id" value={$base_id} />
+          <a
+            href="#"
+            class="fb-cta cta--red js-delete-level"
+            style="margin-right: 20px">
+            {tr('Delete')}
+          </a>
+        </div>;
 
       $attachments_div =
         <div class="attachments">
@@ -2492,7 +2667,7 @@ class AdminController extends Controller {
 
       $adminsections->appendChild(
         <section class="validate-form admin-box section-locked">
-          <form class="level_form base_form" name={$base_id}>
+          <form class="level_form base_form" name={$base_id_txt}>
             <input type="hidden" name="level_type" value="base" />
             <input
               type="hidden"
@@ -2605,9 +2780,7 @@ class AdminController extends Controller {
               <a href="#" class="admin--edit" data-action="edit">
                 {tr('EDIT')}
               </a>
-              <button class="fb-cta cta--red" data-action="delete">
-                {tr('Delete')}
-              </button>
+              {$delete_button}
               <button class="fb-cta cta--yellow" data-action="save">
                 {tr('Save')}
               </button>
@@ -2969,8 +3142,8 @@ class AdminController extends Controller {
     if (count($failures) > 0) {
       $failures_tbody = <tbody></tbody>;
       foreach ($failures as $failure) {
-        $level_genCheckStatus = await Level::genCheckStatus($failure->getLevelId());
-        if (!$level_genCheckStatus) {
+        $check_status = await Level::genCheckStatus($failure->getLevelId());
+        if (!$check_status) {
           continue;
         }
         $level = await Level::gen($failure->getLevelId());

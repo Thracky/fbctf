@@ -10,22 +10,22 @@ abstract class Controller {
   public async function genRenderBranding(): Awaitable<:xhp> {
     $awaitables = Map {
       'custom_logo' => Configuration::gen('custom_logo'),
-      'custom_text' => Configuration::gen('custom_text'),
+      'custom_byline' => Configuration::gen('custom_byline'),
       'custom_logo_image' => Configuration::gen('custom_logo_image'),
     };
     $results = await \HH\Asio\m($awaitables);
     $branding = $results['custom_logo'];
-    $custom_text = $results['custom_text'];
+    $custom_byline = $results['custom_byline'];
     if ($branding->getValue() === '0') {
       $branding_xhp = 
         <fbbranding
-          brandingText={tr(strval($custom_text->getValue()))}
+          brandingText={tr(strval($custom_byline->getValue()))}
         />;
     } else {
       $custom_logo_image = $results['custom_logo_image'];
       $branding_xhp = 
         <custombranding
-          brandingText={strval($custom_text->getValue())}
+          brandingText={strval($custom_byline->getValue())}
           brandingLogo={strval($custom_logo_image->getValue())}
         />;
     }
@@ -43,8 +43,10 @@ abstract class Controller {
     // TODO: Potential LFI - Review how to do internationalization better
     $document_root = must_have_string(Utils::getSERVER(), 'DOCUMENT_ROOT');
     $language_style = '';
-    if (file_exists($document_root. '/static/css/locals/' .$language. '/style.css')) {
-      $language_style = 'static/css/locals/' .$language. '/style.css';
+    if (file_exists(
+          $document_root.'/static/css/locals/'.$language.'/style.css',
+        )) {
+      $language_style = 'static/css/locals/'.$language.'/style.css';
     }
     return
       <x:doctype>
